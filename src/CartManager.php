@@ -100,7 +100,7 @@ final readonly class CartManager
             $cart,
             fn (): CartLine => $this->updateLine($cart, $lineId, $data),
             function () use ($cart, $lineId, $data): bool {
-                $quantity = $cart->lines()->whereKey($lineId)->value('quantity');
+                $quantity = $cart->lines()->whereKey($lineId)->toBase()->value('quantity');
 
                 return $quantity !== null && (int) $quantity !== $data['quantity'];
             },

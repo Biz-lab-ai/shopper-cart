@@ -209,7 +209,7 @@ final readonly class CreateOrderFromCartAction
 
         [, $serviceCode] = explode(':', $shippingOptionId, 2);
 
-        return CarrierOption::query()->where('public_id', $serviceCode)->value('id');
+        return CarrierOption::query()->where('public_id', $serviceCode)->toBase()->value('id');
     }
 
     /**

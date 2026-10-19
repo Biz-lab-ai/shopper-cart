@@ -12,7 +12,7 @@
     "illuminate/pipeline": "^12.68|^13.27",
     "illuminate/session": "^12.68|^13.27",
     "illuminate/support": "^12.68|^13.27",
-    "shopper/core": "self.version"
+    "shopper/core": "3.0.0-rc.3"
   },
   "autoload": {
     "psr-4": {

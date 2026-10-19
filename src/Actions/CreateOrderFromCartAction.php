@@ -8,7 +8,6 @@ use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Shopper\Cart\CartManager;
 use Shopper\Cart\Discounts\DiscountValidator;
 use Shopper\Cart\Events\CartCompleted;
@@ -22,6 +21,7 @@ use Shopper\Cart\Models\CartPromotion;
 use Shopper\Cart\Pipelines\CartPipelineContext;
 use Shopper\Core\Actions\ReserveCampaignBudget;
 use Shopper\Core\Contracts\StockReserver;
+use Shopper\Core\Contracts\StockTransactionRunner;
 use Shopper\Core\Enum\PromotionSource;
 use Shopper\Core\Exceptions\CampaignBudgetExceededException;
 use Shopper\Core\Models\Campaign;
@@ -62,7 +62,10 @@ final readonly class CreateOrderFromCartAction
             $this->cartManager->calculate($cart);
         }
 
-        return DB::transaction(function () use ($cart, $assertTotals, $afterCreate, $honoursPayment): Order {
+        // The caller's closures may hold state of their own, so this entry is
+        // never repeated: a conflict reaches the caller, and CompleteCartAction
+        // repeats the whole checkout from the cart id
+        return resolve(StockTransactionRunner::class)->run(function () use ($cart, $assertTotals, $afterCreate, $honoursPayment): Order {
             $cart->setRawAttributes(
                 $cart->newQueryWithoutScopes()->lockForUpdate()->findOrFail($cart->getKey())->getAttributes(),
                 true,
@@ -195,7 +198,7 @@ final readonly class CreateOrderFromCartAction
             CartCompleted::dispatch($cart, $order);
 
             return $order;
-        }, 3);
+        });
     }
 
     private function resolveCarrierOptionId(?string $shippingOptionId): ?int

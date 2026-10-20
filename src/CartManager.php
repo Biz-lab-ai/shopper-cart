@@ -896,7 +896,7 @@ final readonly class CartManager
      */
     private function lockLines(Cart $cart): EloquentCollection
     {
-        if ($cart->newQuery()->whereKey($cart->getKey())->lockForUpdate()->firstOrFail(['completed_at'])->completed_at !== null) {
+        if ($cart->newQuery()->whereKey($cart->getKey())->lockForUpdate()->toBase()->value('completed_at') !== null) {
             throw new CartCompletedException;
         }
 
